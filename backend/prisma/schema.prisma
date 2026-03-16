@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  password   String
+  phone      String
+  isVerified Boolean   @default(false) @map("is_verified")
+  otp        String?
+  otpExpires DateTime? @map("otp_expires")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  bookings      Booking[]
+  payments      Payment[]
+  favorites     Favorite[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Hotel {
+  id            Int       @id @default(autoincrement())
+  name          String
+  location      String
+  city          String
+  category      String
+  pricePerNight Float     @map("price_per_night")
+  rating        Float
+  description   String
+  images        String[]
+  facilities    String[]
+  latitude      Float?
+  longitude     Float?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  bookings      Booking[]
+  reviews       Review[]
+  favorites     Favorite[]
+
+  @@map("hotels")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  hotelId   Int      @map("hotel_id")
+  userName  String   @map("user_name")
+  comment   String
+  rating    Float
+  createdAt DateTime @default(now()) @map("created_at")
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+
+  @@map("reviews")
+}
+
+model Booking {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  hotelId       Int       @map("hotel_id")
+  checkInDate   DateTime  @map("check_in_date")
+  checkOutDate  DateTime  @map("check_out_date")
+  totalPrice    Float     @map("total_price")
+  bookingStatus String    @default("Pending") @map("booking_status")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  cleaningFee   Float     @default(0) @map("cleaning_fee")
+  guestsCount   Int       @default(1) @map("guests_count")
+  roomType      String    @default("Standard") @map("room_type")
+  serviceFee    Float     @default(0) @map("service_fee")
+  hotel         Hotel     @relation(fields: [hotelId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  payments      Payment[]
+
+  @@map("bookings")
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  bookingId     Int      @map("booking_id")
+  userId        Int      @map("user_id")
+  paymentAmount Float    @map("payment_amount")
+  paymentStatus String   @map("payment_status")
+  transactionId String   @unique @map("transaction_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  booking       Booking  @relation(fields: [bookingId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  hotelId   Int      @map("hotel_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+
+  @@map("favorites")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Coupon {
+  id                 Int      @id @default(autoincrement())
+  code               String   @unique
+  discountPercentage Float    @map("discount_percentage")
+  expiryDate         DateTime @map("expiry_date")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@map("coupons")
+}
