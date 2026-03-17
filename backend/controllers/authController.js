@@ -35,16 +35,16 @@ exports.register = async (req, res) => {
             }
         });
 
-        // Send OTP via Email
-        console.log('Sending OTP to:', email);
+        // Send OTP via Email (Don't await, send in background to prevent UI hang)
+        console.log('Triggering OTP background email for:', email);
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
-        try {
-            await sendEmail(email, subject, message);
-            console.log('OTP Email sent successfully');
-        } catch (emailErr) {
-            console.error('Error sending email:', emailErr.message);
-        }
+        
+        sendEmail(email, subject, message).then(() => {
+            console.log('Background OTP Email sent successfully');
+        }).catch(emailErr => {
+            console.error('Background OTP Email error:', emailErr.message);
+        });
 
         // Still log for safety
         console.log(`[OTP LOGGED for ${email}]: ${otp}`);

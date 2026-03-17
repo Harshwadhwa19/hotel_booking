@@ -15,13 +15,14 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = async (to, subject, text) => {
     try {
+        console.log(`[EMAIL ATTEMPT] Sending to ${to}...`);
         await transporter.sendMail({
             from: `"Grand Hotel" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
             text: text
         });
-        console.log(`[EMAIL SENT to ${to}]`);
+        console.log(`[EMAIL SUCCESS] Sent to ${to}`);
         return true;
     } catch (err) {
         console.error('Nodemailer Error:', err.message);
