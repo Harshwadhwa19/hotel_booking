@@ -40,14 +40,9 @@ exports.register = async (req, res) => {
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
         
-        sendEmail(email, subject, message).then(() => {
-            console.log('Background OTP Email sent successfully');
-        }).catch(emailErr => {
+        sendEmail(email, subject, message).catch(emailErr => {
             console.error('Background OTP Email error:', emailErr.message);
         });
-
-        // Still log for safety
-        console.log(`[OTP LOGGED for ${email}]: ${otp}`);
 
         res.json({ msg: 'OTP sent to your email. Please verify your account.', email });
     } catch (err) {
@@ -101,9 +96,7 @@ exports.sendOtp = async (req, res) => {
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
         
-        sendEmail(email, subject, message).then(() => {
-            console.log('[OTP RESEND] Background Email sent successfully');
-        }).catch(emailErr => {
+        sendEmail(email, subject, message).catch(emailErr => {
             console.error('[OTP RESEND] Background Email error:', emailErr.message);
         });
 
