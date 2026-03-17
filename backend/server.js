@@ -7,15 +7,21 @@ dotenv.config();
 
 const app = express();
 
-// ✅ FINAL CORS FIX
+// ✅ FINAL UNIVERSAL CORS FIX (BEST)
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://hotel-booking-rh7rf78mb-harshwadhwa808-8231s-projects.vercel.app',
-        'https://hotel-booking-uinl-frontend.vercel.app',
-        'https://hotel-booking-alpha-ivory.vercel.app' // ✅ YOUR CURRENT LIVE FRONTEND
-    ],
+    origin: function (origin, callback) {
+        // allow requests without origin (Postman, mobile apps)
+        if (!origin) return callback(null, true);
+
+        if (
+            origin.includes('vercel.app') ||
+            origin.includes('localhost')
+        ) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
