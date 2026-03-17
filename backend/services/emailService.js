@@ -7,21 +7,24 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    port: 587,
+    secure: false, // Use STARTTLS
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // Helps with some cloud hosting certificate issues
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
     }
 });
 
-// Verify connection configuration
+// Verify connection configuration on startup
+console.log('Attempting to verify SMTP server connection...');
 transporter.verify(function (error, success) {
     if (error) {
-        console.error('SMTP Connection Error:', error.message);
+        console.error('SMTP Connection Verification FAILED:', error.message);
+        console.error('Check if EMAIL_USER and EMAIL_PASS are correct in Render Environment Variables.');
     } else {
         console.log('SMTP Server is ready to take our messages');
     }

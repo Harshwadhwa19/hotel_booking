@@ -71,7 +71,12 @@ Booking Details:
 
 Thank you for choosing Grand Hotel!
                     `;
-                    await sendEmail(bookingDetails.user.email, subject, message);
+                    console.log(`[PAYMENT] Triggering background confirmation email for booking #${bookingId}`);
+                    sendEmail(bookingDetails.user.email, subject, message).then(() => {
+                        console.log(`[PAYMENT] Confirmation email sent successfully to ${bookingDetails.user.email}`);
+                    }).catch(emailErr => {
+                        console.error('[PAYMENT] Failed to send confirmation email:', emailErr.message);
+                    });
                 }
             } catch (emailErr) {
                 console.error('Failed to send confirmation email:', emailErr.message);

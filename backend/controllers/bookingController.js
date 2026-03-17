@@ -86,10 +86,14 @@ If this wasn't you, please contact our support immediately.
 
 We hope to see you again soon!
                 `;
-                await sendEmail(booking.user.email, subject, message);
-                console.log(`[CANCELLATION] Email sent successfully to ${booking.user.email}`);
+                console.log(`[CANCELLATION] Triggering background email for booking #${bookingId} to ${booking.user.email}`);
+                sendEmail(booking.user.email, subject, message).then(() => {
+                    console.log(`[CANCELLATION] Email sent successfully to ${booking.user.email}`);
+                }).catch(emailErr => {
+                    console.error('[CANCELLATION] Failed to send email:', emailErr.message);
+                });
             } catch (emailErr) {
-                console.error('[CANCELLATION] Failed to send email:', emailErr.message);
+                console.error('[CANCELLATION] Error preparing email data:', emailErr.message);
             }
         } else {
             console.log(`[CANCELLATION] No user email found for booking #${bookingId}`);
@@ -97,7 +101,7 @@ We hope to see you again soon!
 
         res.json(booking);
     } catch (err) {
-        console.error(err.message);
+        console.error('Cancel booking failed:', err.message);
         res.status(500).send('Server error');
     }
 };
