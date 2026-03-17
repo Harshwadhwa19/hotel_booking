@@ -59,9 +59,16 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOtp = async (email, otp) => {
     try {
-      await authService.verifyOtp(email, otp);
+      console.log(`[FRONTEND] Verifying OTP for ${email}: "${otp}"`);
+      const res = await authService.verifyOtp(email, otp);
+      console.log('[FRONTEND] Verification success:', res.data);
       return { success: true };
     } catch (err) {
+      console.error('[FRONTEND] Verification failed:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
       return { success: false, error: err.response?.data?.msg || 'Verification failed' };
     }
   };

@@ -83,6 +83,7 @@ exports.login = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     const { email } = req.body;
+    console.log(`[OTP RESEND] Request for: ${email}`);
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return res.status(404).json({ msg: 'User not found' });
@@ -95,27 +96,45 @@ exports.sendOtp = async (req, res) => {
             data: { otp, otpExpires }
         });
 
-        // Send OTP via Email
+        // Send OTP in background
+        console.log(`[OTP RESEND] Triggering background email for ${email} with OTP: ${otp}`);
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
-        await sendEmail(email, subject, message);
+        
+        sendEmail(email, subject, message).then(() => {
+            console.log('[OTP RESEND] Background Email sent successfully');
+        }).catch(emailErr => {
+            console.error('[OTP RESEND] Background Email error:', emailErr.message);
+        });
 
-        console.log(`[OTP LOGGED for ${email}]: ${otp}`);
         res.json({ msg: 'OTP sent to your email' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        console.error('[OTP RESEND] Controller Error:', err);
+        res.status(500).json({ msg: 'Server error', error: err.message });
     }
 };
 
 exports.verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
+    console.log(`[OTP VERIFY] Request for ${email} with OTP: "${otp}"`);
     try {
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return res.status(400).json({ msg: 'Invalid request' });
+        if (!user) {
+            console.log(`[OTP VERIFY] User not found: ${email}`);
+            return res.status(400).json({ msg: 'Invalid request' });
+        }
 
-        if (user.otp !== otp || user.otpExpires < new Date()) {
-            return res.status(400).json({ msg: 'Invalid or expired OTP' });
+        console.log(`[OTP VERIFY] DB State - Stored OTP: "${user.otp}", Expires: ${user.otpExpires}`);
+        console.log(`[OTP VERIFY] Current Time: ${new Date().toISOString()}`);
+
+        if (user.otp !== otp) {
+            console.log(`[OTP VERIFY] Mismatch: "${user.otp}" !== "${otp}"`);
+            return res.status(400).json({ msg: 'Invalid OTP' });
+        }
+
+        if (user.otpExpires < new Date()) {
+            console.log(`[OTP VERIFY] Expired: ${user.otpExpires} < ${new Date()}`);
+            return res.status(400).json({ msg: 'OTP has expired' });
         }
 
         await prisma.user.update({
@@ -127,10 +146,11 @@ exports.verifyOtp = async (req, res) => {
             }
         });
 
+        console.log(`[OTP VERIFY] SUCCESS for ${email}`);
         res.json({ msg: 'Account verified successfully' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        console.error('[OTP VERIFY] Controller Error:', err);
+        res.status(500).json({ msg: 'Internal server error', error: err.message });
     }
 };
 
