@@ -2,10 +2,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { sendEmail } = require('../services/emailService');
-
-// Helper to generate 4-digit OTP
-const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 exports.register = async (req, res) => {
     const { name, email, password, phone } = req.body;
@@ -38,13 +34,10 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    // ... rest of the file ...
     const { email, password } = req.body;
     try {
         let user = await prisma.user.findUnique({ where: { email } });
         if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
-
-        // OTP check removed as per user request
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
@@ -67,17 +60,12 @@ exports.sendOtp = async (req, res) => {
 exports.verifyOtp = async (req, res) => {
     res.json({ msg: 'OTP system disabled' });
 };
-    } catch (err) {
-        console.error('[OTP VERIFY] Controller Error:', err.message);
-        res.status(500).json({ msg: 'Internal server error' });
-    }
-};
 
 exports.resetPassword = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !user.isVerified) return res.status(400).json({ msg: 'Invalid request' });
+        if (!user) return res.status(400).json({ msg: 'Invalid request' });
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);

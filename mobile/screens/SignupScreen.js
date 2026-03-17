@@ -39,7 +39,8 @@ const SignupScreen = ({ navigation }) => {
     try {
       const res = await register(formData.name, formData.email, formData.password, formData.phone);
       if (res.success) {
-        navigation.navigate('OTPVerification', { email: formData.email });
+        Alert.alert('Success', 'Account created! Please login.');
+        navigation.navigate('Login');
       } else {
         setError(res.error || 'Registration failed');
       }

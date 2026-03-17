@@ -34,9 +34,6 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       return { success: true };
     } catch (err) {
-      if (err.response?.status === 401 && err.response?.data?.unverified) {
-        return { success: false, unverified: true, email };
-      }
       return { success: false, error: err.response?.data?.msg || 'Login failed' };
     }
   };

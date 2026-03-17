@@ -42,7 +42,7 @@ const SignupPage = () => {
     setLoading(true);
     const res = await register(formData.name, formData.email, formData.password, formData.phone);
     if (res.success) {
-      navigate('/verify-otp', { state: { email: formData.email } });
+      navigate('/login', { state: { message: 'Account created! Please login.' } });
     } else {
       setError(res.error);
     }
