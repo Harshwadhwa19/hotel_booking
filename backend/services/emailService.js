@@ -7,13 +7,17 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    port: 587,
+    secure: false, // Use STARTTLS (Port 587)
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    connectionTimeout: 10000, // 10 seconds
+    tls: {
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2'
+    },
+    connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000
 });
@@ -21,14 +25,15 @@ const transporter = nodemailer.createTransport({
 // Verify connection configuration on startup
 transporter.verify(function (error, success) {
     if (error) {
-        console.error('SMTP Connection Verification FAILED:', error.message);
+        console.warn('SMTP Warning (Verify):', error.message);
     } else {
-        console.log('SMTP Server is ready');
+        console.log('SMTP Server is ready (Port 587)');
     }
 });
 
 const sendEmail = async (to, subject, text) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.error('[EMAIL ERROR] Credentials missing. Fallback OTP:', text);
         return false;
     }
 
@@ -39,10 +44,15 @@ const sendEmail = async (to, subject, text) => {
             subject: subject,
             text: text
         });
-        console.log(`[REAL-MAIL-SUCCESS] Email successfully delivered to ${to}`);
+        console.log(`[REAL-MAIL-SUCCESS] Email delivered to ${to}`);
         return true;
     } catch (err) {
-        console.error('Nodemailer Error:', err.message);
+        // Safe fallback - log the OTP so the user can see it in Render logs
+        console.error('Nodemailer Error (Port 587 Failed):', err.message);
+        console.log('--- FALLBACK OTP LOG ---');
+        console.log(`To: ${to}`);
+        console.log(`Content: ${text}`);
+        console.log('------------------------');
         return false;
     }
 };
