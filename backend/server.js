@@ -7,14 +7,16 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS FIX (add your deployed frontend later)
+// ✅ FINAL CORS FIX
 app.use(cors({
     origin: [
         'http://localhost:5173',
         'http://localhost:5174',
         'https://hotel-booking-rh7rf78mb-harshwadhwa808-8231s-projects.vercel.app',
-        'https://hotel-booking-uinl-frontend.vercel.app' // Adding a general one if applicable
+        'https://hotel-booking-uinl-frontend.vercel.app',
+        'https://hotel-booking-alpha-ivory.vercel.app' // ✅ YOUR CURRENT LIVE FRONTEND
     ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
 
@@ -41,14 +43,10 @@ app.use('/api/favorites', require('./routes/favoriteRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
 
-// ✅ PRODUCTION STATIC SERVE (FIXED)
+// ✅ PRODUCTION STATIC SERVE
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-    // ❌ OLD (REMOVE)
-    // app.get('(.*)', ...)
-
-    // ✅ NEW SAFE FALLBACK
     app.use((req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'frontend', 'dist', 'index.html'));
     });
