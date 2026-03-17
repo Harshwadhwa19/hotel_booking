@@ -34,9 +34,16 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password, phone) => {
     try {
+      console.log('Attempting to register:', { name, email, phone });
       const res = await authService.register({ name, email, password, phone });
+      console.log('Registration response:', res.data);
       return { success: true, email };
     } catch (err) {
+      console.error('Registration error detail:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       return { success: false, error: err.response?.data?.msg || 'Registration failed' };
     }
   };

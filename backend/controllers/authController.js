@@ -9,9 +9,13 @@ const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 exports.register = async (req, res) => {
     const { name, email, password, phone } = req.body;
+    console.log('Registration request received for:', email);
     try {
         let user = await prisma.user.findUnique({ where: { email } });
-        if (user) return res.status(400).json({ msg: 'User already exists' });
+        if (user) {
+            console.log('User already exists:', email);
+            return res.status(400).json({ msg: 'User already exists' });
+        }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -32,17 +36,23 @@ exports.register = async (req, res) => {
         });
 
         // Send OTP via Email
+        console.log('Sending OTP to:', email);
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
-        await sendEmail(email, subject, message);
+        try {
+            await sendEmail(email, subject, message);
+            console.log('OTP Email sent successfully');
+        } catch (emailErr) {
+            console.error('Error sending email:', emailErr.message);
+        }
 
         // Still log for safety
         console.log(`[OTP LOGGED for ${email}]: ${otp}`);
 
         res.json({ msg: 'OTP sent to your email. Please verify your account.', email });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        console.error('Registration Controller Error:', err);
+        res.status(500).json({ msg: 'Internal server error', error: err.message });
     }
 };
 
