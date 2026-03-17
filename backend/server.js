@@ -7,22 +7,30 @@ dotenv.config();
 
 const app = express();
 
+// ✅ CORS FIX (add your deployed frontend later)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
-  credentials: true
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://hotel-booking-rh7rf78mb-harshwadhwa808-8231s-projects.vercel.app'
+    ],
+    credentials: true
 }));
+
 app.use(express.json());
 
+// ✅ Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 
-// Health check route
+// ✅ Health check
 app.get('/health', (req, res) => {
     res.status(200).send('API is running correctly');
 });
 
+// ✅ Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/hotels', require('./routes/hotelRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
@@ -32,12 +40,15 @@ app.use('/api/favorites', require('./routes/favoriteRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
 
-// Serve static assets in production
+// ✅ PRODUCTION STATIC SERVE (FIXED)
 if (process.env.NODE_ENV === 'production') {
-    // Set static folder
     app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-    app.get('(.*)', (req, res) => {
+    // ❌ OLD (REMOVE)
+    // app.get('(.*)', ...)
+
+    // ✅ NEW SAFE FALLBACK
+    app.use((req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'frontend', 'dist', 'index.html'));
     });
 } else {
@@ -46,6 +57,9 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// ✅ PORT FIX (Render compatible)
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+});
