@@ -12,7 +12,8 @@ app.use(cors({
     origin: [
         'http://localhost:5173',
         'http://localhost:5174',
-        'https://hotel-booking-rh7rf78mb-harshwadhwa808-8231s-projects.vercel.app'
+        'https://hotel-booking-rh7rf78mb-harshwadhwa808-8231s-projects.vercel.app',
+        'https://hotel-booking-uinl-frontend.vercel.app' // Adding a general one if applicable
     ],
     credentials: true
 }));
