@@ -20,31 +20,17 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const otp = generateOTP();
-        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
         user = await prisma.user.create({
             data: { 
                 name, 
                 email, 
                 password: hashedPassword, 
                 phone,
-                otp,
-                otpExpires,
-                isVerified: false
+                isVerified: true
             }
         });
 
-        // Send OTP via Email (Don't await, send in background to prevent UI hang)
-        console.log('Triggering OTP background email for:', email);
-        const subject = 'Your Grand Hotel Verification Code';
-        const message = `Your Grand Hotel verification code is: ${otp}`;
-        
-        sendEmail(email, subject, message).catch(emailErr => {
-            console.error('Background OTP Email error:', emailErr.message);
-        });
-
-        res.json({ msg: 'OTP sent to your email. Please verify your account.', email });
+        res.json({ msg: 'Account created successfully. Please login.', email });
     } catch (err) {
         console.error('Registration Controller Error:', err);
         res.status(500).json({ msg: 'Internal server error', error: err.message });
@@ -58,9 +44,7 @@ exports.login = async (req, res) => {
         let user = await prisma.user.findUnique({ where: { email } });
         if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
 
-        if (!user.isVerified) {
-            return res.status(401).json({ msg: 'Account not verified. Please verify your email.', unverified: true });
-        }
+        // OTP check removed as per user request
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
@@ -77,62 +61,12 @@ exports.login = async (req, res) => {
 };
 
 exports.sendOtp = async (req, res) => {
-    const { email } = req.body;
-    console.log(`[OTP RESEND] Request for: ${email}`);
-    try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return res.status(404).json({ msg: 'User not found' });
-
-        const otp = generateOTP();
-        const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-        await prisma.user.update({
-            where: { email },
-            data: { otp, otpExpires }
-        });
-
-        // Send OTP in background
-        console.log(`[OTP RESEND] Triggering background email for ${email}`);
-        const subject = 'Your Grand Hotel Verification Code';
-        const message = `Your Grand Hotel verification code is: ${otp}`;
-        
-        sendEmail(email, subject, message).catch(emailErr => {
-            console.error('[OTP RESEND] Background Email error:', emailErr.message);
-        });
-
-        res.json({ msg: 'OTP sent to your email' });
-    } catch (err) {
-        console.error('[OTP RESEND] Controller Error:', err);
-        res.status(500).json({ msg: 'Server error', error: err.message });
-    }
+    res.json({ msg: 'OTP system disabled' });
 };
 
 exports.verifyOtp = async (req, res) => {
-    const { email, otp } = req.body;
-    try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            return res.status(400).json({ msg: 'Invalid request' });
-        }
-
-        if (user.otp !== otp) {
-            return res.status(400).json({ msg: 'Invalid OTP' });
-        }
-
-        if (user.otpExpires < new Date()) {
-            return res.status(400).json({ msg: 'OTP has expired' });
-        }
-
-        await prisma.user.update({
-            where: { email },
-            data: { 
-                isVerified: true,
-                otp: null,
-                otpExpires: null
-            }
-        });
-
-        res.json({ msg: 'Account verified successfully' });
+    res.json({ msg: 'OTP system disabled' });
+};
     } catch (err) {
         console.error('[OTP VERIFY] Controller Error:', err.message);
         res.status(500).json({ msg: 'Internal server error' });
