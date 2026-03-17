@@ -18,6 +18,11 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check route
+app.get('/health', (req, res) => {
+    res.status(200).send('API is running correctly');
+});
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/hotels', require('./routes/hotelRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
@@ -34,6 +39,10 @@ if (process.env.NODE_ENV === 'production') {
 
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'frontend', 'dist', 'index.html'));
+    });
+} else {
+    app.get('/', (req, res) => {
+        res.send('API is running in development mode');
     });
 }
 
