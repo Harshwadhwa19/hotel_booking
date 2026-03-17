@@ -44,16 +44,9 @@ const sendEmail = async (to, subject, text) => {
         return true;
 
     } catch (err) {
-        // 🔥 FALLBACK (IMPORTANT)
-        console.error('❌ EMAIL FAILED:', err.message);
-
-        console.log('\n📩 ===== FALLBACK OTP =====');
-        console.log(`To: ${to}`);
-        console.log(`Message: ${text}`);
-        console.log('==========================\n');
-
-        // ❗ Don't break signup flow
-        return true;
+        // Keep ONLY the error message, NOT the OTP
+        console.error('❌ EMAIL DELIVERY FAILED:', err.message);
+        return false;
     }
 };
 

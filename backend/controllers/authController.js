@@ -92,7 +92,7 @@ exports.sendOtp = async (req, res) => {
         });
 
         // Send OTP in background
-        console.log(`[OTP RESEND] Triggering background email for ${email} with OTP: ${otp}`);
+        console.log(`[OTP RESEND] Triggering background email for ${email}`);
         const subject = 'Your Grand Hotel Verification Code';
         const message = `Your Grand Hotel verification code is: ${otp}`;
         
@@ -109,24 +109,17 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
-    console.log(`[OTP VERIFY] Request for ${email} with OTP: "${otp}"`);
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-            console.log(`[OTP VERIFY] User not found: ${email}`);
             return res.status(400).json({ msg: 'Invalid request' });
         }
 
-        console.log(`[OTP VERIFY] DB State - Stored OTP: "${user.otp}", Expires: ${user.otpExpires}`);
-        console.log(`[OTP VERIFY] Current Time: ${new Date().toISOString()}`);
-
         if (user.otp !== otp) {
-            console.log(`[OTP VERIFY] Mismatch: "${user.otp}" !== "${otp}"`);
             return res.status(400).json({ msg: 'Invalid OTP' });
         }
 
         if (user.otpExpires < new Date()) {
-            console.log(`[OTP VERIFY] Expired: ${user.otpExpires} < ${new Date()}`);
             return res.status(400).json({ msg: 'OTP has expired' });
         }
 
@@ -139,11 +132,10 @@ exports.verifyOtp = async (req, res) => {
             }
         });
 
-        console.log(`[OTP VERIFY] SUCCESS for ${email}`);
         res.json({ msg: 'Account verified successfully' });
     } catch (err) {
-        console.error('[OTP VERIFY] Controller Error:', err);
-        res.status(500).json({ msg: 'Internal server error', error: err.message });
+        console.error('[OTP VERIFY] Controller Error:', err.message);
+        res.status(500).json({ msg: 'Internal server error' });
     }
 };
 
