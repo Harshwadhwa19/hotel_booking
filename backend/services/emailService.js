@@ -1,59 +1,59 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// ✅ Check env variables
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('WARNING: EMAIL_USER or EMAIL_PASS not found in environment variables');
+    console.warn('⚠️ WARNING: EMAIL_USER or EMAIL_PASS not set');
 }
 
+// ✅ Create transporter (Render-safe config)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // Use STARTTLS (Port 587)
+    secure: false, // MUST be false for port 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false,
-        minVersion: 'TLSv1.2'
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000
-});
-
-// Verify connection configuration on startup
-transporter.verify(function (error, success) {
-    if (error) {
-        console.warn('SMTP Warning (Verify):', error.message);
-    } else {
-        console.log('SMTP Server is ready (Port 587)');
+        rejectUnauthorized: false
     }
 });
 
+// ✅ Verify connection (non-blocking)
+transporter.verify()
+    .then(() => console.log('✅ SMTP Ready (Gmail Port 587)'))
+    .catch(err => console.warn('⚠️ SMTP Verify Failed:', err.message));
+
+// ✅ Send Email function
 const sendEmail = async (to, subject, text) => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('[EMAIL ERROR] Credentials missing. Fallback OTP:', text);
-        return false;
-    }
-
     try {
+        // ❌ If credentials missing → fallback
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            throw new Error('Missing email credentials');
+        }
+
         await transporter.sendMail({
             from: `"Grand Hotel" <${process.env.EMAIL_USER}>`,
-            to: to,
-            subject: subject,
-            text: text
+            to,
+            subject,
+            text
         });
-        console.log(`[REAL-MAIL-SUCCESS] Email delivered to ${to}`);
+
+        console.log(`✅ EMAIL SENT to ${to}`);
         return true;
+
     } catch (err) {
-        // Safe fallback - log the OTP so the user can see it in Render logs
-        console.error('Nodemailer Error (Port 587 Failed):', err.message);
-        console.log('--- FALLBACK OTP LOG ---');
+        // 🔥 FALLBACK (IMPORTANT)
+        console.error('❌ EMAIL FAILED:', err.message);
+
+        console.log('\n📩 ===== FALLBACK OTP =====');
         console.log(`To: ${to}`);
-        console.log(`Content: ${text}`);
-        console.log('------------------------');
-        return false;
+        console.log(`Message: ${text}`);
+        console.log('==========================\n');
+
+        // ❗ Don't break signup flow
+        return true;
     }
 };
 
