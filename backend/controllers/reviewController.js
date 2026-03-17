@@ -3,25 +3,26 @@ const prisma = new PrismaClient();
 
 exports.createReview = async (req, res) => {
     const { hotelId, comment, rating } = req.body;
-    // We can get userName from req.user if logged in, or from body
-    const userName = req.user ? req.user.name : (req.body.userName || 'Anonymous');
+    
+    // Improved logic to get userName:
+    // 1. If req.user.name exists (some apps include it in payload)
+    // 2. Otherwise, check req.body.userName (frontend can send it explicitly)
+    // 3. Last fallback: 'Anonymous'
+    const userName = (req.user && req.user.name) ? req.user.name : (req.body.userName || 'Anonymous');
 
     try {
         const review = await prisma.review.create({
             data: {
                 hotelId: parseInt(hotelId),
-                userName,
-                comment,
+                userName: userName,
+                comment: comment,
                 rating: parseFloat(rating)
             }
         });
 
-        // Optional: Update hotel rating (simplified)
-        // In a real app, you'd calculate the average
-        
         res.status(201).json(review);
     } catch (err) {
-        console.error(err.message);
+        console.error('Review creation error:', err.message);
         res.status(500).send('Server error');
     }
 };
