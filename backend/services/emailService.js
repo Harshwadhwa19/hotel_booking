@@ -20,10 +20,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// ✅ Verify connection (non-blocking)
-transporter.verify()
-    .then(() => console.log('✅ SMTP Ready (Gmail Port 587)'))
-    .catch(err => console.warn('⚠️ SMTP Verify Failed:', err.message));
+// ✅ Verify connection (deferred 5s — non-blocking on Render startup)
+setTimeout(() => {
+    transporter.verify()
+        .then(() => console.log('✅ SMTP Ready (Gmail Port 587)'))
+        .catch(err => console.warn('⚠️ SMTP Verify Failed (non-critical):', err.message));
+}, 5000);
 
 // ✅ Send Email function
 const sendEmail = async (to, subject, text) => {

@@ -7,15 +7,18 @@ dotenv.config();
 
 const app = express();
 
-// ✅ FINAL UNIVERSAL CORS FIX (BEST)
+// ✅ CORS FIX (Render + Vercel + localhost)
 app.use(cors({
     origin: function (origin, callback) {
-        // allow requests without origin (Postman, mobile apps)
+        // Allow requests without origin (Postman, mobile apps, same-origin)
         if (!origin) return callback(null, true);
 
         if (
             origin.includes('vercel.app') ||
-            origin.includes('localhost')
+            origin.includes('render.com') ||
+            origin.includes('onrender.com') ||
+            origin.includes('localhost') ||
+            origin.includes('127.0.0.1')
         ) {
             return callback(null, true);
         }
@@ -23,6 +26,7 @@ app.use(cors({
         return callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-auth-token', 'Authorization'],
     credentials: true
 }));
 
