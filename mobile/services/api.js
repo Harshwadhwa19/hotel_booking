@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // IMPORTANT: Replace 'localhost' with your machine's IP address to test on a physical device.
 // Android Emulator uses 10.0.2.2 for host machine.
-const BASE_URL = 'http://10.0.2.2:5000/api';
+const BASE_URL = "https://hotel-booking-uinl.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
